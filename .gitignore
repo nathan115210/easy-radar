@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Local runtime/diagnostic state (not the authoritative news archive)
+.runtime/
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Editor/OS
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Test/coverage output
+coverage/
+playwright-report/
+test-results/
+
+# Vite
+.vite/
