@@ -8,3 +8,10 @@ entries in each category's file under `config/sources/`, shown as
 `Not collected` on the Sources page, and never enter collection or coverage
 math. This document is the human-readable counterpart to that structured
 config, not a separate source of truth.
+
+## Software Design & System Architecture
+
+- System Design Primer — https://github.com/donnemartin/system-design-primer — community-maintained reference for learning system design fundamentals.
+- Refactoring.Guru — https://refactoring.guru — catalog of design patterns and refactoring techniques.
+- DDD Crew — https://github.com/ddd-crew — community-maintained Domain-Driven Design tools and templates.
+- TypeScript documentation — https://www.typescriptlang.org/docs/ — official TypeScript language and compiler reference.
