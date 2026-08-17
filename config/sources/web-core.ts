@@ -336,48 +336,59 @@ export const sources: SourceConfig[] = [
     tags: ["react", "rfc"],
   },
 
-  // --- Planned: needs the newsletter one-issue-per-item adapter (#30) ---
+  // --- Newsletters: one issue per item, via the feed adapter + a label
+  // override (#30) — each of these has a real RSS feed, verified live
+  // during onboarding rather than guessed. ---
   {
     id: "javascript-weekly",
     name: "JavaScript Weekly",
     category,
-    kind: "website",
-    url: "https://javascriptweekly.com/issues",
-    adapter: "newsletter",
+    kind: "feed",
+    url: "https://javascriptweekly.com/rss",
+    adapter: "feed",
     initialSyncFrom: INITIAL_SYNC_FROM,
-    status: "planned",
+    status: "active",
     tags: ["newsletter", "javascript"],
+    filters: { label: "Announcement" },
   },
   {
     id: "this-week-in-react",
     name: "This Week in React",
     category,
-    kind: "website",
+    kind: "feed",
     // PRD §13.1 routing note: stays in Web Core, never duplicated in Mobile.
-    url: "https://thisweekinreact.com/newsletter",
-    adapter: "newsletter",
+    url: "https://thisweekinreact.com/newsletter/rss.xml",
+    adapter: "feed",
     initialSyncFrom: INITIAL_SYNC_FROM,
-    status: "planned",
+    status: "active",
     tags: ["newsletter", "react"],
+    filters: { label: "Announcement" },
   },
   {
     id: "frontend-focus",
     name: "Frontend Focus",
     category,
-    kind: "website",
-    url: "https://frontendfoc.us/issues",
-    adapter: "newsletter",
+    kind: "feed",
+    url: "https://frontendfoc.us/rss",
+    adapter: "feed",
     initialSyncFrom: INITIAL_SYNC_FROM,
-    status: "planned",
+    status: "active",
     tags: ["newsletter"],
+    filters: { label: "Announcement" },
   },
+  // Planned, not active like the other three newsletters above: verified
+  // live during onboarding that css-weekly.com's feed is a mixed article
+  // blog (individual post titles, only occasionally an "Issue #NNN" entry),
+  // not a clean one-issue-per-entry digest — activating it as-is would
+  // violate PRD §30's "one issue is one NewsItem" rule. Needs the correct
+  // URL for the actual CSS Weekly newsletter confirmed before activation.
   {
     id: "css-weekly",
     name: "CSS Weekly",
     category,
     kind: "website",
     url: "https://css-weekly.com",
-    adapter: "newsletter",
+    adapter: "feed",
     initialSyncFrom: INITIAL_SYNC_FROM,
     status: "planned",
     tags: ["newsletter", "css"],

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Frontend Focus</title>
+    <link>https://frontendfoc.us</link>
+    <description>A once-weekly roundup of front-end news</description>
+    <item>
+      <title>Frontend Focus Issue 650</title>
+      <link>https://frontendfoc.us/issues/650</link>
+      <pubDate>Wed, 19 Feb 2026 12:00:00 GMT</pubDate>
+      <description>
+        <![CDATA[
+          <p>Featuring <a href="https://example.com/css-tip">a CSS tip</a> and
+          <a href="https://example.com/build-tool-news">build tool news</a>.</p>
+        ]]>
+      </description>
+    </item>
+  </channel>
+</rss>
