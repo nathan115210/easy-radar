@@ -14,11 +14,17 @@ export const SourceCollectionStatusSchema = z.object({
 
 export type SourceCollectionStatus = z.infer<typeof SourceCollectionStatusSchema>;
 
-// Change guards that can reject an entire run before it writes (PRD §18.6).
+/**
+ * What can reject an entire run before it writes: the PRD §18.6 change
+ * guards, plus a failed data-invariant check (PRD §17: schema errors,
+ * duplicate active items, desynchronized state — validation gates the
+ * write itself rather than a merge, since there are no data pull requests).
+ */
 export const RunRejectionReasonSchema = z.enum([
   "volume-guard",
   "active-item-mutation",
   "cursor-regression",
+  "validation-failed",
 ]);
 export type RunRejectionReason = z.infer<typeof RunRejectionReasonSchema>;
 

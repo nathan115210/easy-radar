@@ -23,8 +23,11 @@ import { ConfigInvalidError } from "./engine/errors.js";
 import { summarizeOutcomes } from "./engine/log-summary.js";
 import { runCollection } from "./engine/run-collection.js";
 import { buildSourceStatuses } from "./engine/source-status.js";
-import { checkCursorRegression, checkVolumeGuard } from "./guards.js";
+import { checkCursorRegression, checkVolumeGuard, type GuardResult } from "./guards.js";
 import { mergeNewsItems } from "./merge-news.js";
+import { validateNewsInvariants } from "../validate/news-invariants.js";
+import { validateStateSync } from "../validate/state-sync.js";
+import { formatIssues } from "../validate/validation-issue.js";
 
 export type CollectPipelineOptions = {
   sources: readonly SourceConfig[];
@@ -49,15 +52,14 @@ export type CollectPipelineResult = {
 /**
  * The one collector every execution path runs (manual, the AGY Skill,
  * cloud) — load config, collect, dedup, classify, synchronize state,
- * write. Deliberately not in this pipeline: the §10 cleanup rules (#24)
- * and the full change-guard system with the `allow_large_change` escape
- * hatch (#44) — this includes only the minimal volume/cursor-regression
- * checks #12's own acceptance criteria need (a guard-rejected run must
- * leave news.json untouched and still publish status). `pnpm validate`
- * (schema/invariant checks, #13) runs as a separate step in the cloud
- * pipeline (PRD §18.5) rather than being folded into this function; every
- * write here already goes through schema-validating storage (#6), so
- * malformed data can't reach disk regardless.
+ * validate, write. Data validation (#13: no duplicate active items,
+ * state/news sync) runs inline here, before any write, and a failure is
+ * treated exactly like a guard rejection: publish collection-status.json
+ * with the precise reason, leave news.json untouched (PRD §17, §18.5 step
+ * 7b). Deliberately not in this pipeline: the §10 cleanup rules (#24) and
+ * the full change-guard system with the `allow_large_change` escape hatch
+ * (#44) — this includes only the minimal volume/cursor-regression checks
+ * #12's own acceptance criteria need.
  */
 export async function runCollectPipeline(
   options: CollectPipelineOptions,
@@ -129,9 +131,24 @@ export async function runCollectPipeline(
   const existingNews = await readNews(options.dataDir);
   const { mergedNews, addedItems } = mergeNewsItems(existingNews, dedupedItems);
 
-  const guardResults = [
+  const existingStates = await readNewsStates(options.dataDir);
+  const syncedStates = syncNewsStatesWithItems(existingStates, mergedNews, now());
+
+  const validationIssues = [
+    ...validateNewsInvariants(mergedNews),
+    ...validateStateSync(mergedNews, syncedStates, now()),
+  ];
+
+  const guardResults: GuardResult[] = [
     checkVolumeGuard(addedItems.length, options.volumeGuardThreshold),
     checkCursorRegression(previousCursorsFile.cursors, updatedCursors),
+    validationIssues.length > 0
+      ? {
+          rejected: true,
+          reason: "validation-failed",
+          detail: formatIssues(validationIssues),
+        }
+      : { rejected: false },
   ];
   const rejection = guardResults.find((result) => result.rejected);
 
@@ -168,9 +185,6 @@ export async function runCollectPipeline(
       rejection: { reason: rejection.reason, detail: rejection.detail },
     };
   }
-
-  const existingStates = await readNewsStates(options.dataDir);
-  const syncedStates = syncNewsStatesWithItems(existingStates, mergedNews, now());
 
   await writeNews(options.dataDir, mergedNews);
   await writeNewsStates(options.dataDir, syncedStates);

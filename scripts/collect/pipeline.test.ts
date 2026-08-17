@@ -4,9 +4,13 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { NewsItem } from "../../shared/schemas/index.js";
 import { readCollectionStatus } from "../../server/storage/collection-status.js";
-import { newsFilePath } from "../../server/storage/news.js";
+import { ensureDataFiles } from "../../server/storage/init.js";
+import { newsFilePath, writeNews } from "../../server/storage/news.js";
+import { writeNewsStates } from "../../server/storage/news-states.js";
+import { computeDeterministicId } from "./deterministic-id.js";
 import { createAdapterRegistry } from "./engine/adapter.js";
 import { makeSource } from "./engine/test-fixtures.js";
+import { normalizeUrl } from "./normalize-url.js";
 import { runCollectPipeline } from "./pipeline.js";
 
 let dir: string;
@@ -22,13 +26,14 @@ afterEach(async () => {
 const noSleep = async (): Promise<void> => {};
 const fixedNow = (): Date => new Date("2026-06-01T00:00:00Z");
 
-function item(id: string, date = "2026-06-01"): NewsItem {
+function item(slug: string, date = "2026-06-01"): NewsItem {
+  const link = normalizeUrl(`https://example.com/${slug}`);
   return {
-    id,
+    id: computeDeterministicId(link),
     sourceId: "s",
-    heading: `Item ${id}`,
+    heading: `Item ${slug}`,
     label: "Release",
-    link: `https://example.com/${id}`,
+    link,
     date,
     dateBasis: "published",
     category: "web-core",
@@ -50,7 +55,9 @@ describe("runCollectPipeline", () => {
     });
 
     expect(result.summary).toBe("Collection run: 1 succeeded, 0 failed, 0 planned, 1 added");
-    await expect(readFile(newsFilePath(dir), "utf-8")).resolves.toContain('"id": "a"');
+    await expect(readFile(newsFilePath(dir), "utf-8")).resolves.toContain(
+      `"id": "${item("a").id}"`,
+    );
   });
 
   it("a run with zero new discoveries writes no data diff", async () => {
@@ -177,6 +184,37 @@ describe("runCollectPipeline", () => {
     expect(result.summary).toContain("2 added");
 
     const news = JSON.parse(await readFile(newsFilePath(dir), "utf-8")) as NewsItem[];
-    expect(news.map((n) => n.id).sort()).toEqual(["a", "b"]);
+    expect(news.map((n) => n.id).sort()).toEqual([item("a").id, item("b").id].sort());
+  });
+
+  it("a data-invariant validation failure (pre-existing corrupt data) rejects the run with a specific reason", async () => {
+    // Simulate corrupted on-disk state from before this run: news.json
+    // already has a duplicate id (the pipeline's own merge can't produce
+    // this, but existing data on disk could be corrupted some other way).
+    await ensureDataFiles(dir);
+    await writeNews(dir, [item("a"), item("a")]);
+    await writeNewsStates(dir, {
+      schemaVersion: 1,
+      items: { [item("a").id]: { state: "unread", updatedAt: fixedNow().toISOString() } },
+    });
+
+    const source = makeSource({ id: "s", adapter: "quiet" });
+    const registry = createAdapterRegistry([{ name: "quiet", collect: async () => [] }]);
+
+    const result = await runCollectPipeline({
+      sources: [source],
+      registry,
+      dataDir: dir,
+      sleep: noSleep,
+      now: fixedNow,
+    });
+
+    expect(result.wroteDataFiles).toBe(false);
+    expect(result.rejection).toMatchObject({ reason: "validation-failed" });
+    expect(result.rejection?.detail).toContain("news-duplicate-id");
+    expect(result.rejection?.detail).toContain(item("a").id);
+
+    const status = await readCollectionStatus(dir);
+    expect(status.rejected).toMatchObject({ reason: "validation-failed" });
   });
 });
