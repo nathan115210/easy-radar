@@ -22,7 +22,7 @@
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm validate:config && pnpm test && pnpm build",
     "validate:config": "tsx scripts/validate/cli-config.ts",
     "validate:data": "tsx scripts/validate/cli.ts",
-    "start": "echo \"pnpm start: not yet implemented (see issue #22)\"",
+    "start": "tsx scripts/start/cli.ts",
     "collect": "tsx scripts/collect/cli.ts"
   },
   "devDependencies": {

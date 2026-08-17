@@ -1,3 +1,4 @@
+import path from "node:path";
 import express, { type Express, type NextFunction, type Request, type Response } from "express";
 import {
   sources as realSources,
@@ -24,6 +25,8 @@ export type CreateAppOptions = {
   /** Defaults to the real config/sources module; overridable for tests. */
   sources?: readonly SourceConfig[];
   referenceSources?: readonly ReferenceSource[];
+  /** Directory holding the built frontend (`vite build` output); defaults to `dist`. */
+  staticDir?: string;
 };
 
 /**
@@ -40,6 +43,7 @@ export function createApp(options: CreateAppOptions): Express {
   const sources = options.sources ?? realSources;
   const referenceSources = options.referenceSources ?? realReferenceSources;
   const worktreeDir = options.worktreeDir ?? defaultWorktreeDir();
+  const staticDir = options.staticDir ?? path.join(process.cwd(), "dist");
 
   const app = express();
   app.use(express.json());
@@ -109,6 +113,21 @@ export function createApp(options: CreateAppOptions): Express {
 
     hasUncommittedChanges = false;
     res.json({ committed: outcome.committed, pushed: outcome.pushed, hasUncommittedChanges });
+  });
+
+  // Serves the built frontend (PRD §22: "the local server is expected to
+  // serve both the API and this built frontend") — one process, one port,
+  // no dev-server proxy. Placed after every /api/* route, so an actual API
+  // request never falls through to it; the SPA fallback excludes /api/ by
+  // regex so an unmatched API path still 404s normally instead of getting
+  // index.html.
+  app.use(express.static(staticDir));
+  app.get(/^\/(?!api\/).*/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(staticDir, "index.html"), (err: unknown) => {
+      if (err) {
+        res.status(404).end();
+      }
+    });
   });
 
   // Express 5 forwards a rejected promise from any async handler above to
