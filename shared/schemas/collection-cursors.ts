@@ -17,6 +17,13 @@ export const SourceCursorSchema = z.object({
    * pre-existing undated backlog from resurfacing on every later run.
    */
   knownUndatedIds: z.array(z.string()).optional(),
+  /**
+   * TC39 proposal lifecycle tracking (PRD §11.6, #28): the last stage
+   * observed for each proposal (by repo slug), so a transition is
+   * detected by diffing this run's observed stage against what's recorded
+   * here — never by re-deriving history from scratch each run.
+   */
+  proposalStages: z.record(z.string(), z.string()).optional(),
 });
 
 export type SourceCursor = z.infer<typeof SourceCursorSchema>;

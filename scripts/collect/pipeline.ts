@@ -22,7 +22,7 @@ import { resolveDuplicates, type DedupCandidate } from "./dedup.js";
 import type { AdapterRegistry } from "./engine/adapter.js";
 import { ConfigInvalidError } from "./engine/errors.js";
 import { summarizeOutcomes } from "./engine/log-summary.js";
-import { runCollection } from "./engine/run-collection.js";
+import { runCollection, validateAdapterConfig } from "./engine/run-collection.js";
 import { buildSourceStatuses } from "./engine/source-status.js";
 import {
   checkActiveItemMutationGuard,
@@ -85,18 +85,8 @@ export async function runCollectPipeline(
   // Config validity (an unsupported adapter) is checked before anything is
   // written, including the first-run empty-file bootstrap below — a
   // config-invalid run must leave the data directory exactly as it found it.
-  let engineResult: Awaited<ReturnType<typeof runCollection>>;
   try {
-    engineResult = await runCollection({
-      sources: options.sources,
-      registry: options.registry,
-      concurrency: options.concurrency,
-      timeoutMs: options.timeoutMs,
-      retries: options.retries,
-      retryBaseDelayMs: options.retryBaseDelayMs,
-      now: options.now,
-      sleep: options.sleep,
-    });
+    validateAdapterConfig(options.sources, options.registry);
   } catch (error) {
     if (error instanceof ConfigInvalidError) {
       return {
@@ -113,6 +103,19 @@ export async function runCollectPipeline(
   const previousCursorsFile = await readCollectionCursors(options.dataDir);
   const previousStatusFile = await readCollectionStatus(options.dataDir);
 
+  // Config is already known-valid (checked above), so this can't throw.
+  const engineResult = await runCollection({
+    sources: options.sources,
+    registry: options.registry,
+    concurrency: options.concurrency,
+    timeoutMs: options.timeoutMs,
+    retries: options.retries,
+    retryBaseDelayMs: options.retryBaseDelayMs,
+    now: options.now,
+    sleep: options.sleep,
+    previousCursors: previousCursorsFile.cursors,
+  });
+
   const windowedItems: NewsItem[] = [];
   const updatedCursors: Record<string, SourceCursor> = { ...previousCursorsFile.cursors };
 
@@ -128,7 +131,10 @@ export async function runCollectPipeline(
       now(),
     );
     windowedItems.push(...items);
-    updatedCursors[outcome.source.id] = updatedCursor;
+    updatedCursors[outcome.source.id] = {
+      ...updatedCursor,
+      ...(outcome.cursorFragment as Partial<SourceCursor> | undefined),
+    };
   }
 
   // Deduplicate across every source in this run (PRD §11.4): the most
