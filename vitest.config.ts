@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: [
+      "config/**/*.test.ts",
       "src/**/*.test.ts",
       "server/**/*.test.ts",
       "shared/**/*.test.ts",
@@ -13,7 +14,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      include: ["src/**", "server/**", "shared/**", "scripts/**"],
+      include: ["config/**", "src/**", "server/**", "shared/**", "scripts/**"],
     },
   },
 });

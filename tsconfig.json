@@ -15,6 +15,7 @@
   },
   "include": [
     "*.ts",
+    "config/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
     "server/**/*.ts",
