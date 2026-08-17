@@ -14,7 +14,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"pnpm test: not yet implemented (see issue #3)\"",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "echo \"pnpm test:e2e: not yet implemented (see issue #32)\"",
     "build": "echo \"pnpm build: not yet implemented (see issue #16)\"",
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
@@ -24,6 +25,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@types/node": "^24.5.2",
+    "@vitest/coverage-v8": "4.1.10",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -33,6 +35,7 @@
     "prettier": "^3.9.6",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.67.0"
+    "typescript-eslint": "^8.67.0",
+    "vitest": "4.1.10"
   }
 }
