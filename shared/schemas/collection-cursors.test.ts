@@ -25,6 +25,16 @@ describe("CollectionCursorsFileSchema", () => {
     expect(CollectionCursorsFileSchema.parse(file)).toEqual(file);
   });
 
+  it("accepts a cursor with knownUndatedIds recorded from the undated-source baseline", () => {
+    const file = {
+      schemaVersion: 1,
+      cursors: {
+        "react-blog": { lastRunAt: "2026-01-01T12:00:00Z", knownUndatedIds: ["abc123", "def456"] },
+      },
+    };
+    expect(CollectionCursorsFileSchema.parse(file)).toEqual(file);
+  });
+
   it("rejects a cursor missing lastRunAt", () => {
     const invalid = { schemaVersion: 1, cursors: { "react-blog": { lastItemId: "abc123" } } };
     expect(() => CollectionCursorsFileSchema.parse(invalid)).toThrow();
