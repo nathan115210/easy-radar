@@ -15,7 +15,9 @@ export type CollectionEventType =
   | "tc39-proposal-created"
   | "tc39-stage-transition"
   | "tc39-withdrawal"
-  | "announcement";
+  | "announcement"
+  | "api-item"
+  | "website-article";
 
 /**
  * Labels are derived from adapter/event type only — never an LLM (PRD §4.3,
@@ -31,6 +33,8 @@ const LABEL_BY_EVENT_TYPE: Record<CollectionEventType, NewsLabel> = {
   "tc39-stage-transition": "Improvement",
   "tc39-withdrawal": "Retired",
   announcement: "Announcement",
+  "api-item": "Announcement",
+  "website-article": "Engineering Article",
 };
 
 export function deriveLabel(eventType: CollectionEventType): NewsLabel {
