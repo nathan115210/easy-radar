@@ -40,7 +40,7 @@ const sourcesRoute = createRoute({
   component: SourcesPage,
 });
 
-const routeTree = rootRoute.addChildren([newsRoute, sourcesRoute]);
+export const routeTree = rootRoute.addChildren([newsRoute, sourcesRoute]);
 
 export const router = createRouter({ routeTree, defaultPreload: "intent" });
 
