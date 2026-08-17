@@ -1,9 +1,11 @@
 import {
   CollectionStatusResponseSchema,
+  FinishReadingResponseSchema,
   NewsPageResponseSchema,
   SetNewsStateResponseSchema,
   SourcesResponseSchema,
   type CollectionStatusResponse,
+  type FinishReadingResponse,
   type NewsPageResponse,
   type NewsQuery,
   type NewsStateValue,
@@ -19,6 +21,11 @@ import type { z } from "zod";
  * server/client drift fails loudly here instead of surfacing as a subtly
  * wrong render. Requests are same-origin relative paths: the local server
  * is expected to serve both the API and this built frontend (#22).
+ *
+ * A failure response's `{ error }` body is surfaced in the thrown message
+ * when present — `Finish reading` (PRD §6.3) in particular must show the
+ * server's actionable reason (a rebase conflict, a push abort) rather
+ * than a bare HTTP status.
  */
 async function fetchJson<Schema extends z.ZodType>(
   input: string,
@@ -27,7 +34,12 @@ async function fetchJson<Schema extends z.ZodType>(
 ): Promise<z.infer<Schema>> {
   const response = await fetch(input, init);
   if (!response.ok) {
-    throw new Error(`Request to "${input}" failed: HTTP ${response.status}`);
+    const body: unknown = await response.json().catch(() => undefined);
+    const serverMessage =
+      body && typeof body === "object" && "error" in body && typeof body.error === "string"
+        ? body.error
+        : undefined;
+    throw new Error(serverMessage ?? `Request to "${input}" failed: HTTP ${response.status}`);
   }
 
   const body: unknown = await response.json();
@@ -64,4 +76,8 @@ export async function setNewsState(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ state }),
   });
+}
+
+export async function finishReading(): Promise<FinishReadingResponse> {
+  return fetchJson("/api/finish-reading", FinishReadingResponseSchema, { method: "POST" });
 }

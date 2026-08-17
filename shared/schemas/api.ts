@@ -109,12 +109,11 @@ export type SetNewsStateRequest = z.infer<typeof SetNewsStateRequestSchema>;
 
 /**
  * `hasUncommittedChanges` tracks whether any state change has been made
- * since this server process started (or since the last successful
- * `POST /api/finish-reading`, once #21 exists) — the signal the UI uses
- * to drive the `beforeunload` confirmation (PRD §6.3). This is
- * server-process-lifetime state, not persisted, and not a proxy for the
- * `.data/` worktree's actual git status; #21 owns resetting it after a
- * real commit + push.
+ * since this server process started, or since the last successful
+ * `POST /api/finish-reading` reset it — the signal the UI uses to drive
+ * the `beforeunload` confirmation (PRD §6.3). This is server-process-
+ * lifetime state, not persisted, and not a proxy for the `.data/`
+ * worktree's actual git status.
  */
 export const SetNewsStateResponseSchema = z.object({
   id: z.string(),
@@ -122,3 +121,18 @@ export const SetNewsStateResponseSchema = z.object({
   hasUncommittedChanges: z.literal(true),
 });
 export type SetNewsStateResponse = z.infer<typeof SetNewsStateResponseSchema>;
+
+/**
+ * A successful `POST /api/finish-reading` (PRD §6.3). `committed: false`
+ * means there was nothing to commit — the user clicked `Finish reading`
+ * with no pending state changes — which is still success, just a no-op;
+ * `pushed` is only ever true alongside `committed`. Failure is not
+ * represented in this schema: it comes back as a non-2xx response with an
+ * `{ error }` body, since it's never something the UI treats as "finished".
+ */
+export const FinishReadingResponseSchema = z.object({
+  committed: z.boolean(),
+  pushed: z.boolean(),
+  hasUncommittedChanges: z.literal(false),
+});
+export type FinishReadingResponse = z.infer<typeof FinishReadingResponseSchema>;

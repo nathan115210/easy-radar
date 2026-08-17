@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type MouseEvent } from "react";
 import { setNewsState } from "../api/client.js";
 import { CATEGORY_LABELS } from "../domain/category-labels.js";
+import { UNCOMMITTED_CHANGES_QUERY_KEY } from "../domain/uncommitted-changes.js";
 import type { NewsItemView, NewsPageResponse, NewsStateValue } from "../../shared/schemas/index.js";
 
 type NewsCardProps = {
@@ -47,6 +48,9 @@ export function NewsCard({ item, queryKey }: NewsCardProps) {
       if (context?.previous) {
         queryClient.setQueryData(queryKey, context.previous);
       }
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(UNCOMMITTED_CHANGES_QUERY_KEY, data.hasUncommittedChanges);
     },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ["news"] });
