@@ -12,6 +12,8 @@ describe("deriveLabel", () => {
     ["tc39-stage-transition", "Improvement"],
     ["tc39-withdrawal", "Retired"],
     ["announcement", "Announcement"],
+    ["api-item", "Announcement"],
+    ["website-article", "Engineering Article"],
   ];
 
   it.each(cases)("maps event type %s to label %s", (eventType, expectedLabel) => {

@@ -1,9 +1,7 @@
 import { appendFile } from "node:fs/promises";
 import { sources } from "../../config/sources/index.js";
 import { defaultDataDir } from "../../server/storage/paths.js";
-import { createFeedAdapter } from "./adapters/feed.js";
-import { createGithubReleaseAdapter } from "./adapters/github-releases.js";
-import { createAdapterRegistry } from "./engine/adapter.js";
+import { createDefaultAdapterRegistry } from "./default-registry.js";
 import { runCollectPipeline } from "./pipeline.js";
 
 /**
@@ -21,7 +19,7 @@ import { runCollectPipeline } from "./pipeline.js";
  * trigger must never pass it.
  */
 async function main(): Promise<void> {
-  const registry = createAdapterRegistry([createFeedAdapter(), createGithubReleaseAdapter()]);
+  const registry = createDefaultAdapterRegistry();
   const allowLargeChange = process.argv.includes("--allow-large-change");
 
   const result = await runCollectPipeline({
