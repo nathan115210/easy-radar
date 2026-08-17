@@ -1,0 +1,34 @@
+[
+  {
+    "tag_name": "v19.1.0",
+    "name": "v19.1.0",
+    "html_url": "https://github.com/example/repo/releases/tag/v19.1.0",
+    "published_at": "2026-01-10T12:00:00Z",
+    "draft": false,
+    "prerelease": false
+  },
+  {
+    "tag_name": "v19.0.1",
+    "name": "v19.0.1",
+    "html_url": "https://github.com/example/repo/releases/tag/v19.0.1",
+    "published_at": "2026-01-05T12:00:00Z",
+    "draft": false,
+    "prerelease": false
+  },
+  {
+    "tag_name": "v19.1.0-rc.0",
+    "name": "v19.1.0-rc.0",
+    "html_url": "https://github.com/example/repo/releases/tag/v19.1.0-rc.0",
+    "published_at": "2026-01-08T12:00:00Z",
+    "draft": false,
+    "prerelease": true
+  },
+  {
+    "tag_name": "v19.2.0-draft",
+    "name": "v19.2.0-draft",
+    "html_url": "https://github.com/example/repo/releases/tag/v19.2.0-draft",
+    "published_at": null,
+    "draft": true,
+    "prerelease": false
+  }
+]
