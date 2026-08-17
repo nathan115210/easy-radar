@@ -8,6 +8,9 @@ build/
 # Local runtime/diagnostic state (not the authoritative news archive)
 .runtime/
 
+# Data branch worktree (checked out locally, not part of main)
+.data/
+
 # Env files
 .env
 .env.local

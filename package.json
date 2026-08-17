@@ -1,0 +1,27 @@
+{
+  "name": "easy-radar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@10.20.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "format": "echo \"pnpm format: not yet implemented (see issue #2)\"",
+    "lint": "echo \"pnpm lint: not yet implemented (see issue #2)\"",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"pnpm test: not yet implemented (see issue #3)\"",
+    "test:e2e": "echo \"pnpm test:e2e: not yet implemented (see issue #32)\"",
+    "build": "echo \"pnpm build: not yet implemented (see issue #16)\"",
+    "validate": "echo \"pnpm validate: not yet implemented (see issue #2)\"",
+    "start": "echo \"pnpm start: not yet implemented (see issue #22)\"",
+    "collect": "echo \"pnpm collect: not yet implemented (see issue #12)\""
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.2",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
