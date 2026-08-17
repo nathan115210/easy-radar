@@ -13,14 +13,22 @@ import { runCollectPipeline } from "./pipeline.js";
  * terminal is appended to GITHUB_STEP_SUMMARY when set, so a cloud run's
  * job summary is identical in content (PRD §7.3) — this is also the only
  * output an AI executor is permitted to read and relay (§18.4).
+ *
+ * `--allow-large-change` waives only the volume guard (PRD §18.6) and
+ * must be passed explicitly by whoever runs this — there's no default or
+ * env-var fallback, so it can never be set by accident. #45's
+ * `workflow_dispatch` input maps onto this same flag; its `schedule`
+ * trigger must never pass it.
  */
 async function main(): Promise<void> {
   const registry = createAdapterRegistry([createFeedAdapter(), createGithubReleaseAdapter()]);
+  const allowLargeChange = process.argv.includes("--allow-large-change");
 
   const result = await runCollectPipeline({
     sources,
     registry,
     dataDir: defaultDataDir(),
+    allowLargeChange,
   });
 
   console.log(result.summary);

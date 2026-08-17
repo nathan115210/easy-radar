@@ -24,7 +24,12 @@ import { ConfigInvalidError } from "./engine/errors.js";
 import { summarizeOutcomes } from "./engine/log-summary.js";
 import { runCollection } from "./engine/run-collection.js";
 import { buildSourceStatuses } from "./engine/source-status.js";
-import { checkCursorRegression, checkVolumeGuard, type GuardResult } from "./guards.js";
+import {
+  checkActiveItemMutationGuard,
+  checkCursorRegression,
+  checkVolumeGuard,
+  type GuardResult,
+} from "./guards.js";
 import { mergeNewsItems } from "./merge-news.js";
 import { validateNewsInvariants } from "../validate/news-invariants.js";
 import { validateStateSync } from "../validate/state-sync.js";
@@ -41,6 +46,13 @@ export type CollectPipelineOptions = {
   retryBaseDelayMs?: number;
   sleep?: (ms: number) => Promise<void>;
   volumeGuardThreshold?: number;
+  /**
+   * Waives only the volume guard (PRD §18.6) — never the deletion or
+   * cursor-regression guards. Must always be an explicit, deliberate
+   * choice: the `schedule` trigger (#45) can never set this, and nothing
+   * in this pipeline sets it on its own.
+   */
+  allowLargeChange?: boolean;
 };
 
 export type CollectPipelineResult = {
@@ -60,10 +72,10 @@ export type CollectPipelineResult = {
  * state/news sync) runs inline here, before any write, and a failure is
  * treated exactly like a guard rejection: publish collection-status.json
  * with the precise reason, leave news.json untouched (PRD §17, §18.5 step
- * 7b). Deliberately not in this pipeline: the full change-guard system
- * with the `allow_large_change` escape hatch (#44) — this includes only
- * the minimal volume/cursor-regression checks #12's own acceptance
- * criteria need.
+ * 7b). The full change-guard system (#44) runs last, right before the
+ * write: volume, active-item append-only, and cursor regression — any
+ * single trigger rejects the write, and only the volume guard can be
+ * waived, via `options.allowLargeChange`, and only by explicit choice.
  */
 export async function runCollectPipeline(
   options: CollectPipelineOptions,
@@ -145,8 +157,13 @@ export async function runCollectPipeline(
     ...validateStateSync(cleaned.items, cleaned.statesFile, now()),
   ];
 
+  const legitimatelyRemovedIds = new Set([...cleaned.reAddedIgnoredIds, ...cleaned.expiredReadIds]);
+
   const guardResults: GuardResult[] = [
-    checkVolumeGuard(addedItems.length, options.volumeGuardThreshold),
+    ...(options.allowLargeChange
+      ? []
+      : [checkVolumeGuard(addedItems.length, options.volumeGuardThreshold)]),
+    checkActiveItemMutationGuard(existingNews, cleaned.items, legitimatelyRemovedIds),
     checkCursorRegression(previousCursorsFile.cursors, updatedCursors),
     validationIssues.length > 0
       ? {

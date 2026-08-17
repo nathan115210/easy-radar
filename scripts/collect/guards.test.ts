@@ -1,6 +1,21 @@
 import { describe, expect, it } from "vitest";
-import type { SourceCursor } from "../../shared/schemas/index.js";
-import { checkCursorRegression, checkVolumeGuard } from "./guards.js";
+import type { NewsItem, SourceCursor } from "../../shared/schemas/index.js";
+import { checkActiveItemMutationGuard, checkCursorRegression, checkVolumeGuard } from "./guards.js";
+
+function item(id: string, overrides: Partial<NewsItem> = {}): NewsItem {
+  return {
+    id,
+    sourceId: "s",
+    heading: `Item ${id}`,
+    label: "Release",
+    link: `https://example.com/${id}`,
+    date: "2026-01-01",
+    dateBasis: "published",
+    category: "web-core",
+    tags: ["react"],
+    ...overrides,
+  };
+}
 
 describe("checkVolumeGuard", () => {
   it("does not reject at or below the threshold", () => {
@@ -39,5 +54,50 @@ describe("checkCursorRegression", () => {
     const result = checkCursorRegression(previous, regressed);
     expect(result).toMatchObject({ rejected: true, reason: "cursor-regression" });
     expect(result.rejected && result.detail).toMatch(/"a"/);
+  });
+});
+
+describe("checkActiveItemMutationGuard", () => {
+  it("does not reject when existing items are untouched, even with new ones added", () => {
+    const previous = [item("a"), item("b")];
+    const current = [item("a"), item("b"), item("c")];
+    expect(checkActiveItemMutationGuard(previous, current, new Set())).toEqual({
+      rejected: false,
+    });
+  });
+
+  it("rejects when an existing active item is deleted outside of cleanup", () => {
+    const previous = [item("a"), item("b")];
+    const current = [item("a")];
+    const result = checkActiveItemMutationGuard(previous, current, new Set());
+    expect(result).toMatchObject({ rejected: true, reason: "active-item-mutation" });
+    expect(result.rejected && result.detail).toMatch(/"b"/);
+  });
+
+  it("does not reject a deletion the cleanup step legitimately caused", () => {
+    const previous = [item("a"), item("b")];
+    const current = [item("a")];
+    const result = checkActiveItemMutationGuard(previous, current, new Set(["b"]));
+    expect(result).toEqual({ rejected: false });
+  });
+
+  it("rejects when an existing item's field is modified", () => {
+    const previous = [item("a", { heading: "Original heading" })];
+    const current = [item("a", { heading: "Rewritten heading" })];
+    const result = checkActiveItemMutationGuard(previous, current, new Set());
+    expect(result).toMatchObject({ rejected: true, reason: "active-item-mutation" });
+    expect(result.rejected && result.detail).toMatch(/"a"/);
+  });
+
+  it("rejects when an existing item's tags are modified", () => {
+    const previous = [item("a", { tags: ["react"] })];
+    const current = [item("a", { tags: ["react", "compiler"] })];
+    const result = checkActiveItemMutationGuard(previous, current, new Set());
+    expect(result.rejected).toBe(true);
+  });
+
+  it("does not reject when there were no previous items at all", () => {
+    const result = checkActiveItemMutationGuard([], [item("a")], new Set());
+    expect(result).toEqual({ rejected: false });
   });
 });
