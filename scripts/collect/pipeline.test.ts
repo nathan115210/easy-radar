@@ -4,6 +4,7 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { NewsItem } from "../../shared/schemas/index.js";
 import { readCollectionStatus } from "../../server/storage/collection-status.js";
+import { writeCollectionCursors } from "../../server/storage/collection-cursors.js";
 import { ensureDataFiles } from "../../server/storage/init.js";
 import { newsFilePath, writeNews } from "../../server/storage/news.js";
 import { writeNewsStates } from "../../server/storage/news-states.js";
@@ -247,5 +248,79 @@ describe("runCollectPipeline", () => {
     expect(result.summary).toContain("1 re-added ignored item(s) scrubbed");
     const newsBytes = await readFile(newsFilePath(dir), "utf-8");
     expect(newsBytes).not.toContain(ignored.id);
+
+    // #44: a cleanup-only deletion must never trip the active-item-mutation guard.
+    expect(result.rejection).toBeUndefined();
+    expect(result.wroteDataFiles).toBe(true);
+  });
+
+  it("writes normally when several sources fail but volume stays under threshold (#44)", async () => {
+    const goodSource = makeSource({ id: "good", adapter: "good" });
+    const badSourceA = makeSource({ id: "bad-a", adapter: "bad" });
+    const badSourceB = makeSource({ id: "bad-b", adapter: "bad" });
+    const registry = createAdapterRegistry([
+      { name: "good", collect: async () => [item("a")] },
+      {
+        name: "bad",
+        collect: async () => {
+          throw new Error("HTTP 503");
+        },
+      },
+    ]);
+
+    const result = await runCollectPipeline({
+      sources: [goodSource, badSourceA, badSourceB],
+      registry,
+      dataDir: dir,
+      retries: 0,
+      sleep: noSleep,
+      now: fixedNow,
+    });
+
+    expect(result.wroteDataFiles).toBe(true);
+    expect(result.rejection).toBeUndefined();
+    expect(result.summary).toContain("1 succeeded, 2 failed");
+  });
+
+  it("allowLargeChange bypasses only the volume guard, not cursor regression (#44)", async () => {
+    const source = makeSource({ id: "s", adapter: "prolific" });
+    const registry = createAdapterRegistry([
+      { name: "prolific", collect: async () => [item("a"), item("b"), item("c")] },
+    ]);
+
+    const volumeResult = await runCollectPipeline({
+      sources: [source],
+      registry,
+      dataDir: dir,
+      sleep: noSleep,
+      now: fixedNow,
+      volumeGuardThreshold: 2,
+      allowLargeChange: true,
+    });
+
+    expect(volumeResult.wroteDataFiles).toBe(true);
+    expect(volumeResult.rejection).toBeUndefined();
+    expect(volumeResult.summary).toContain("3 added");
+
+    // A cursor that appears to regress must still reject the run, even with allowLargeChange.
+    await writeCollectionCursors(dir, {
+      schemaVersion: 1,
+      cursors: { s: { lastRunAt: "2027-01-01T00:00:00Z" } },
+    });
+    const beforeBytes = await readFile(newsFilePath(dir), "utf-8");
+
+    const cursorResult = await runCollectPipeline({
+      sources: [source],
+      registry,
+      dataDir: dir,
+      sleep: noSleep,
+      now: fixedNow,
+      allowLargeChange: true,
+    });
+
+    expect(cursorResult.wroteDataFiles).toBe(false);
+    expect(cursorResult.rejection).toMatchObject({ reason: "cursor-regression" });
+    const afterBytes = await readFile(newsFilePath(dir), "utf-8");
+    expect(afterBytes).toBe(beforeBytes);
   });
 });
