@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { getNews } from "../api/client.js";
 import { CollectionStatusAlert } from "../components/CollectionStatusAlert.js";
+import { FinishReadingButton } from "../components/FinishReadingButton.js";
 import { NewsCard } from "../components/NewsCard.js";
 import { CATEGORIES, CATEGORY_LABELS } from "../domain/category-labels.js";
 import type { Category, NewsStateFilter } from "../../shared/schemas/index.js";
@@ -14,9 +15,8 @@ const route = getRouteApi("/");
  * tabs, state filter, news cards, pagination, and a fixed "Finish reading"
  * button. #17 owns the tabs, filter, pagination, and the URL state
  * (category/state/page) they read and write; #18 owns the news card
- * itself (`NewsCard`); #19 owns the alert (`CollectionStatusAlert`). The
- * finish-reading button (#21) is built in its own issue and only has its
- * layout slot reserved here.
+ * itself (`NewsCard`); #19 owns the alert (`CollectionStatusAlert`); #21
+ * owns the finish-reading button (`FinishReadingButton`).
  */
 export function NewsPage() {
   const { category, state, page } = route.useSearch();
@@ -89,7 +89,7 @@ export function NewsPage() {
         <Pagination value={data.page} onChange={setPage} total={data.totalPages} />
       )}
 
-      {/* Fixed "Finish reading" button lands in #21. */}
+      <FinishReadingButton />
     </Stack>
   );
 }

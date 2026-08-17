@@ -10,6 +10,11 @@ export function defaultDataDir(): string {
   return path.join(process.cwd(), ".data", "data");
 }
 
+/** The git worktree root that holds `defaultDataDir()` at its `data/` subdirectory (PRD §15.1). */
+export function defaultWorktreeDir(): string {
+  return path.join(process.cwd(), ".data");
+}
+
 export function dataFilePath(dataDir: string, fileName: string): string {
   return path.join(dataDir, fileName);
 }

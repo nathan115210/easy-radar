@@ -13,9 +13,13 @@ import { getCollectionStatusSummary } from "./queries/collection-status-query.js
 import { getNewsPage } from "./queries/news-query.js";
 import { getSourcesGroupedByCategory } from "./queries/sources-query.js";
 import { setNewsState } from "./mutations/set-news-state.js";
+import { finishReading } from "./mutations/finish-reading.js";
+import { defaultWorktreeDir } from "./storage/paths.js";
 
 export type CreateAppOptions = {
   dataDir: string;
+  /** The git worktree root `dataDir` lives inside (PRD §15.1); defaults to `.data`. */
+  worktreeDir?: string;
   now?: () => Date;
   /** Defaults to the real config/sources module; overridable for tests. */
   sources?: readonly SourceConfig[];
@@ -23,16 +27,19 @@ export type CreateAppOptions = {
 };
 
 /**
- * The local Express + Zod server (PRD §14.3): three read endpoints, all
- * request/response shapes validated against shared/schemas/api.ts. No
- * database, no auth layer, no arbitrary shell execution — every route
- * reads through server/storage (#6), which is the only path that touches
- * the `.data/` worktree.
+ * The local Express + Zod server (PRD §14.3): three read endpoints and two
+ * mutations (reading state, finish reading), all request/response shapes
+ * validated against shared/schemas/api.ts. No database, no auth layer, no
+ * arbitrary shell execution — every route reads through server/storage
+ * (#6), which is the only path that touches the `.data/` worktree's data
+ * files; `POST /api/finish-reading` additionally drives #20's
+ * git-workflow scripts to commit and push that worktree.
  */
 export function createApp(options: CreateAppOptions): Express {
   const now = options.now ?? ((): Date => new Date());
   const sources = options.sources ?? realSources;
   const referenceSources = options.referenceSources ?? realReferenceSources;
+  const worktreeDir = options.worktreeDir ?? defaultWorktreeDir();
 
   const app = express();
   app.use(express.json());
@@ -82,6 +89,26 @@ export function createApp(options: CreateAppOptions): Express {
 
     hasUncommittedChanges = true;
     res.json({ id, state: parsed.data.state, hasUncommittedChanges });
+  });
+
+  app.post("/api/finish-reading", async (_req: Request, res: Response) => {
+    const outcome = await finishReading(worktreeDir, options.dataDir, now());
+
+    if (outcome.outcome === "invalid") {
+      res.status(422).json({ error: outcome.message });
+      return;
+    }
+    if (outcome.outcome === "diverged") {
+      res.status(409).json({ error: outcome.message });
+      return;
+    }
+    if (outcome.outcome === "push-aborted") {
+      res.status(502).json({ error: outcome.message });
+      return;
+    }
+
+    hasUncommittedChanges = false;
+    res.json({ committed: outcome.committed, pushed: outcome.pushed, hasUncommittedChanges });
   });
 
   // Express 5 forwards a rejected promise from any async handler above to
