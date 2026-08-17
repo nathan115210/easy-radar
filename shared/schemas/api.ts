@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CategorySchema } from "./category.js";
 import { CollectionCoverageSchema, RunRejectionSchema } from "./collection-status.js";
 import { NewsItemSchema } from "./news-item.js";
+import { NewsStateValueSchema } from "./news-state.js";
 import { SourceKindSchema, SourceStatusSchema } from "./source-config.js";
 
 /**
@@ -88,3 +89,24 @@ export const CollectionStatusResponseSchema = z.object({
   rejected: RunRejectionSchema.optional(),
 });
 export type CollectionStatusResponse = z.infer<typeof CollectionStatusResponseSchema>;
+
+export const SetNewsStateRequestSchema = z.object({
+  state: NewsStateValueSchema,
+});
+export type SetNewsStateRequest = z.infer<typeof SetNewsStateRequestSchema>;
+
+/**
+ * `hasUncommittedChanges` tracks whether any state change has been made
+ * since this server process started (or since the last successful
+ * `POST /api/finish-reading`, once #21 exists) — the signal the UI uses
+ * to drive the `beforeunload` confirmation (PRD §6.3). This is
+ * server-process-lifetime state, not persisted, and not a proxy for the
+ * `.data/` worktree's actual git status; #21 owns resetting it after a
+ * real commit + push.
+ */
+export const SetNewsStateResponseSchema = z.object({
+  id: z.string(),
+  state: NewsStateValueSchema,
+  hasUncommittedChanges: z.literal(true),
+});
+export type SetNewsStateResponse = z.infer<typeof SetNewsStateResponseSchema>;
