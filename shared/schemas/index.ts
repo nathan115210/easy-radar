@@ -6,3 +6,4 @@ export * from "./source-config.js";
 export * from "./reference-source.js";
 export * from "./collection-cursors.js";
 export * from "./collection-status.js";
+export * from "./api.js";
