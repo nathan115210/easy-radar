@@ -5,12 +5,14 @@ import {
 } from "../config/sources/index.js";
 import {
   NewsQuerySchema,
+  SetNewsStateRequestSchema,
   type ReferenceSource,
   type SourceConfig,
 } from "../shared/schemas/index.js";
 import { getCollectionStatusSummary } from "./queries/collection-status-query.js";
 import { getNewsPage } from "./queries/news-query.js";
 import { getSourcesGroupedByCategory } from "./queries/sources-query.js";
+import { setNewsState } from "./mutations/set-news-state.js";
 
 export type CreateAppOptions = {
   dataDir: string;
@@ -33,6 +35,11 @@ export function createApp(options: CreateAppOptions): Express {
   const referenceSources = options.referenceSources ?? realReferenceSources;
 
   const app = express();
+  app.use(express.json());
+
+  // Process-lifetime only, not persisted (see SetNewsStateResponseSchema's
+  // doc comment for what this does and doesn't track).
+  let hasUncommittedChanges = false;
 
   app.get("/api/news", async (req: Request, res: Response) => {
     const parsed = NewsQuerySchema.safeParse(req.query);
@@ -56,6 +63,25 @@ export function createApp(options: CreateAppOptions): Express {
   app.get("/api/collection-status", async (_req: Request, res: Response) => {
     const summary = await getCollectionStatusSummary(options.dataDir, now());
     res.json(summary);
+  });
+
+  app.patch("/api/news/:id/state", async (req: Request, res: Response) => {
+    const id = String(req.params.id);
+
+    const parsed = SetNewsStateRequestSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: "Invalid state value", details: parsed.error.issues });
+      return;
+    }
+
+    const outcome = await setNewsState(options.dataDir, id, parsed.data.state, now());
+    if (!outcome.found) {
+      res.status(404).json({ error: `No active news item with id "${id}"` });
+      return;
+    }
+
+    hasUncommittedChanges = true;
+    res.json({ id, state: parsed.data.state, hasUncommittedChanges });
   });
 
   // Express 5 forwards a rejected promise from any async handler above to

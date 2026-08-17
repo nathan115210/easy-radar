@@ -263,3 +263,70 @@ describe("GET /api/collection-status", () => {
     });
   });
 });
+
+describe("PATCH /api/news/:id/state", () => {
+  const item = newsItem("abc123", "2026-01-01");
+
+  it("marks an item read and reports uncommitted changes", async () => {
+    await writeNews(dir, [item]);
+    const app = createApp({ dataDir: dir });
+
+    const res = await request(app).patch(`/api/news/${item.id}/state`).send({ state: "read" });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ id: item.id, state: "read", hasUncommittedChanges: true });
+  });
+
+  it("marks an item unread", async () => {
+    await writeNews(dir, [item]);
+    const app = createApp({ dataDir: dir });
+
+    const res = await request(app).patch(`/api/news/${item.id}/state`).send({ state: "unread" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.state).toBe("unread");
+  });
+
+  it("marks an item ignored, removing it from active news", async () => {
+    await writeNews(dir, [item]);
+    const app = createApp({ dataDir: dir });
+
+    const res = await request(app).patch(`/api/news/${item.id}/state`).send({ state: "ignored" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.state).toBe("ignored");
+
+    const news = await request(app).get("/api/news").query({ category: "web-core" });
+    expect(news.body.items).toEqual([]);
+  });
+
+  it("returns 404 for an unknown item id", async () => {
+    const app = createApp({ dataDir: dir });
+    const res = await request(app).patch("/api/news/does-not-exist/state").send({ state: "read" });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 400 for an invalid state value", async () => {
+    await writeNews(dir, [item]);
+    const app = createApp({ dataDir: dir });
+
+    const res = await request(app).patch(`/api/news/${item.id}/state`).send({ state: "archived" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("keeps reporting uncommitted changes across multiple mutations on the same app instance", async () => {
+    await writeNews(dir, [item]);
+    const app = createApp({ dataDir: dir });
+
+    const firstPatch = await request(app)
+      .patch(`/api/news/${item.id}/state`)
+      .send({ state: "read" });
+    expect(firstPatch.body.hasUncommittedChanges).toBe(true);
+
+    const secondPatch = await request(app)
+      .patch(`/api/news/${item.id}/state`)
+      .send({ state: "unread" });
+    expect(secondPatch.body.hasUncommittedChanges).toBe(true);
+  });
+});
