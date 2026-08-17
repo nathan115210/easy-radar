@@ -200,4 +200,62 @@ describe("runCollection", () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
+
+  it("narrows a virtual source's items to its filters.virtualScope, independent of a broader source sharing the same feed (PRD §27)", async () => {
+    const changelogItems: NewsItem[] = [
+      {
+        id: "copilot-1",
+        sourceId: "github-changelog",
+        heading: "Copilot: inline chat improvements",
+        label: "Announcement",
+        link: "https://github.blog/changelog/copilot-inline-chat",
+        date: "2026-01-01",
+        dateBasis: "published",
+        category: "developer-tooling",
+        tags: [],
+      },
+      {
+        id: "actions-1",
+        sourceId: "github-changelog",
+        heading: "Actions: new runner image",
+        label: "Announcement",
+        link: "https://github.blog/changelog/actions-runner-image",
+        date: "2026-01-02",
+        dateBasis: "published",
+        category: "developer-tooling",
+        tags: [],
+      },
+    ];
+
+    const broadSource = makeSource({
+      id: "github-changelog",
+      adapter: "changelog",
+      category: "developer-tooling",
+    });
+    const copilotVirtualSource = makeSource({
+      id: "github-changelog-copilot",
+      adapter: "changelog",
+      category: "ai-engineering",
+      filters: { virtualScope: { titleContains: "Copilot" } },
+    });
+
+    const registry = createAdapterRegistry([
+      { name: "changelog", collect: async () => changelogItems },
+    ]);
+
+    const result = await runCollection({
+      sources: [broadSource, copilotVirtualSource],
+      registry,
+      sleep: noSleep,
+    });
+
+    const broadOutcome = result.outcomes.find((o) => o.source.id === "github-changelog");
+    const copilotOutcome = result.outcomes.find((o) => o.source.id === "github-changelog-copilot");
+
+    expect(broadOutcome).toMatchObject({ outcome: "succeeded", items: changelogItems });
+    expect(copilotOutcome).toMatchObject({
+      outcome: "succeeded",
+      items: [changelogItems[0]],
+    });
+  });
 });
