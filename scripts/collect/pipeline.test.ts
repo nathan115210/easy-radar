@@ -217,4 +217,35 @@ describe("runCollectPipeline", () => {
     const status = await readCollectionStatus(dir);
     expect(status.rejected).toMatchObject({ reason: "validation-failed" });
   });
+
+  it("scrubs an item re-collected while its ignore tombstone is still live (PRD §10, #24)", async () => {
+    const ignored = item("a");
+    await ensureDataFiles(dir);
+    await writeNewsStates(dir, {
+      schemaVersion: 1,
+      items: {
+        [ignored.id]: {
+          state: "ignored",
+          updatedAt: fixedNow().toISOString(),
+          ignoredAt: fixedNow().toISOString(),
+        },
+      },
+    });
+
+    // The source still serves it — simulating the 36h collection overlap.
+    const source = makeSource({ id: "s", adapter: "good" });
+    const registry = createAdapterRegistry([{ name: "good", collect: async () => [ignored] }]);
+
+    const result = await runCollectPipeline({
+      sources: [source],
+      registry,
+      dataDir: dir,
+      sleep: noSleep,
+      now: fixedNow,
+    });
+
+    expect(result.summary).toContain("1 re-added ignored item(s) scrubbed");
+    const newsBytes = await readFile(newsFilePath(dir), "utf-8");
+    expect(newsBytes).not.toContain(ignored.id);
+  });
 });

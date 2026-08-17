@@ -23,7 +23,8 @@
     "validate:config": "tsx scripts/validate/cli-config.ts",
     "validate:data": "tsx scripts/validate/cli.ts",
     "start": "tsx scripts/start/cli.ts",
-    "collect": "tsx scripts/collect/cli.ts"
+    "collect": "tsx scripts/collect/cli.ts",
+    "cleanup": "tsx scripts/cleanup/cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

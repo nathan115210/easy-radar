@@ -17,6 +17,7 @@ import type {
   SourceCursor,
 } from "../../shared/schemas/index.js";
 import { applyCollectionWindow } from "./apply-collection-window.js";
+import { runCleanup } from "../cleanup/run-cleanup.js";
 import { resolveDuplicates, type DedupCandidate } from "./dedup.js";
 import type { AdapterRegistry } from "./engine/adapter.js";
 import { ConfigInvalidError } from "./engine/errors.js";
@@ -52,14 +53,17 @@ export type CollectPipelineResult = {
 /**
  * The one collector every execution path runs (manual, the AGY Skill,
  * cloud) — load config, collect, dedup, classify, synchronize state,
- * validate, write. Data validation (#13: no duplicate active items,
+ * validate, write. Cleanup (#24: ignore tombstones, read-item expiry)
+ * runs immediately after state sync and before validation (PRD §18.5 step
+ * 4), so validation and the guards below see the cleaned data, not the
+ * pre-cleanup merge. Data validation (#13: no duplicate active items,
  * state/news sync) runs inline here, before any write, and a failure is
  * treated exactly like a guard rejection: publish collection-status.json
  * with the precise reason, leave news.json untouched (PRD §17, §18.5 step
- * 7b). Deliberately not in this pipeline: the §10 cleanup rules (#24) and
- * the full change-guard system with the `allow_large_change` escape hatch
- * (#44) — this includes only the minimal volume/cursor-regression checks
- * #12's own acceptance criteria need.
+ * 7b). Deliberately not in this pipeline: the full change-guard system
+ * with the `allow_large_change` escape hatch (#44) — this includes only
+ * the minimal volume/cursor-regression checks #12's own acceptance
+ * criteria need.
  */
 export async function runCollectPipeline(
   options: CollectPipelineOptions,
@@ -134,9 +138,11 @@ export async function runCollectPipeline(
   const existingStates = await readNewsStates(options.dataDir);
   const syncedStates = syncNewsStatesWithItems(existingStates, mergedNews, now());
 
+  const cleaned = runCleanup(mergedNews, syncedStates, now());
+
   const validationIssues = [
-    ...validateNewsInvariants(mergedNews),
-    ...validateStateSync(mergedNews, syncedStates, now()),
+    ...validateNewsInvariants(cleaned.items),
+    ...validateStateSync(cleaned.items, cleaned.statesFile, now()),
   ];
 
   const guardResults: GuardResult[] = [
@@ -174,6 +180,17 @@ export async function runCollectPipeline(
   await writeCollectionStatus(options.dataDir, statusFile);
 
   const summaryLines = [summarizeOutcomes(engineResult.outcomes, addedItems.length)];
+  const cleanedCount =
+    cleaned.prunedTombstoneIds.length +
+    cleaned.reAddedIgnoredIds.length +
+    cleaned.expiredReadIds.length;
+  if (cleanedCount > 0) {
+    summaryLines.push(
+      `Cleanup: ${cleaned.prunedTombstoneIds.length} tombstone(s) pruned, ` +
+        `${cleaned.reAddedIgnoredIds.length} re-added ignored item(s) scrubbed, ` +
+        `${cleaned.expiredReadIds.length} read item(s) expired`,
+    );
+  }
 
   if (rejection?.rejected) {
     summaryLines.push(`REJECTED: ${rejection.reason} — ${rejection.detail}`);
@@ -186,8 +203,8 @@ export async function runCollectPipeline(
     };
   }
 
-  await writeNews(options.dataDir, mergedNews);
-  await writeNewsStates(options.dataDir, syncedStates);
+  await writeNews(options.dataDir, cleaned.items);
+  await writeNewsStates(options.dataDir, cleaned.statesFile);
   await writeCollectionCursors(options.dataDir, { schemaVersion: 1, cursors: updatedCursors });
 
   return { summary: summaryLines.join("\n"), exitCode: 0, wroteDataFiles: true };
