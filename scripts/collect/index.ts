@@ -6,3 +6,6 @@ export * from "./tags.js";
 export * from "./window.js";
 export * from "./undated-baseline.js";
 export * from "./apply-collection-window.js";
+export * from "./guards.js";
+export * from "./merge-news.js";
+export * from "./pipeline.js";
