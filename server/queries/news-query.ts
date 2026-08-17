@@ -47,7 +47,8 @@ export async function getNewsPage(
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / NEWS_PAGE_SIZE));
   const start = (options.page - 1) * NEWS_PAGE_SIZE;
-  const items = filtered.slice(start, start + NEWS_PAGE_SIZE);
+  const page = filtered.slice(start, start + NEWS_PAGE_SIZE);
+  const items = page.map((item) => ({ ...item, state: stateOf(item, statesFile) }));
 
   return { items, counts, page: options.page, pageSize: NEWS_PAGE_SIZE, totalPages };
 }

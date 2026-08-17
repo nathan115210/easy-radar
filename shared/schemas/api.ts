@@ -24,8 +24,20 @@ export const NewsQuerySchema = z.object({
 });
 export type NewsQuery = z.infer<typeof NewsQuerySchema>;
 
+/**
+ * A news item as shown in the main-page list: the stored entity plus its
+ * current reading state (PRD §6.2), which lives in news-states.json, not
+ * news.json itself. Never `"ignored"` — an ignored item is removed from
+ * active news.json on confirmation (PRD §10), so every item reaching the
+ * UI is unread or read.
+ */
+export const NewsItemViewSchema = NewsItemSchema.extend({
+  state: z.enum(["unread", "read"]),
+});
+export type NewsItemView = z.infer<typeof NewsItemViewSchema>;
+
 export const NewsPageResponseSchema = z.object({
-  items: z.array(NewsItemSchema),
+  items: z.array(NewsItemViewSchema),
   counts: z.object({
     all: z.int().nonnegative(),
     unread: z.int().nonnegative(),
