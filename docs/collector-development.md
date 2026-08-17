@@ -50,6 +50,31 @@ generic selector set can express) is the true last resort beyond even
 these two, and needs the same fixture-plus-test treatment described
 below, at minimum.
 
+## Virtual filtered sources (PRD §11.4, §12, §27)
+
+A "virtual source" is a `SourceConfig` that shares a URL and adapter
+with a broader source but scopes itself to a subset of what that URL
+returns — its own id, category, cursor, and status entry, but the same
+underlying fetch. Set `filters.virtualScope` on the narrower source:
+
+```ts
+filters: {
+  virtualScope: {
+    titleContains: "Copilot",   // heading must contain this (case-insensitive)
+    titleExcludes: "deprecated", // heading must NOT contain this
+    linkPathPrefix: "/testing/", // the link's path must start with this
+  },
+}
+```
+
+Every constraint present must match; omit any you don't need. This
+applies generically after any adapter's `collect()` returns
+(`applyVirtualScope` in `virtual-source-filter.ts`), so it works
+identically whether the shared source is a feed, an official API, or
+generic HTML. `resolveDuplicates` (`dedup.ts`) already resolves the case
+where a broad and a filtered source both discover the same canonical
+URL — the source with more filter constraints wins, exactly once.
+
 ## Testing conventions
 
 - Tests run on Vitest (`pnpm test`), configured in `vitest.config.ts`.
