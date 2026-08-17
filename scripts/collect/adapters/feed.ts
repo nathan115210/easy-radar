@@ -1,4 +1,5 @@
-import type { NewsItem } from "../../../shared/schemas/index.js";
+import { z } from "zod";
+import { NewsLabelSchema, type NewsItem } from "../../../shared/schemas/index.js";
 import type { Adapter, AdapterContext } from "../engine/adapter.js";
 import { computeDeterministicId } from "../deterministic-id.js";
 import { deriveLabel } from "../labels.js";
@@ -11,15 +12,21 @@ function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+const FeedFiltersSchema = z.object({ label: NewsLabelSchema.optional() });
+
 function toNewsItem(entry: RawFeedEntry, context: AdapterContext, now: Date): NewsItem {
   const link = normalizeUrl(entry.link);
   const hasTrustworthyDate = entry.publishedAt !== undefined;
+  // A newsletter issue is Announcement, not a written article (PRD §30) —
+  // filters.label overrides the default per source, e.g. for JavaScript
+  // Weekly or Frontend Focus's feed-based "one issue per item" sources.
+  const { label: labelOverride } = FeedFiltersSchema.parse(context.source.filters ?? {});
 
   return {
     id: computeDeterministicId(link),
     sourceId: context.source.id,
     heading: entry.heading,
-    label: deriveLabel("feed-entry"),
+    label: labelOverride ?? deriveLabel("feed-entry"),
     link,
     // Undated entries use the discovery date, never a fabricated "published"
     // date (PRD §11.3) — dateBasis: "discovered" makes that distinction explicit.

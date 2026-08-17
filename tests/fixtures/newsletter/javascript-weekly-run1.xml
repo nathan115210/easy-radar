@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>JavaScript Weekly</title>
+    <link>https://javascriptweekly.com</link>
+    <description>A newsletter of JavaScript articles</description>
+    <item>
+      <title>JavaScript Weekly Issue 712: February 20, 2026</title>
+      <link>https://javascriptweekly.com/issues/712</link>
+      <pubDate>Thu, 20 Feb 2026 12:00:00 GMT</pubDate>
+      <description>
+        <![CDATA[
+          <p>This week: <a href="https://example.com/article-one">Article One</a>,
+          <a href="https://example.com/article-two">Article Two</a>, and
+          <a href="https://example.com/article-three">Article Three</a>.</p>
+        ]]>
+      </description>
+    </item>
+    <item>
+      <title>JavaScript Weekly Issue 711: February 13, 2026</title>
+      <link>https://javascriptweekly.com/issues/711</link>
+      <pubDate>Thu, 13 Feb 2026 12:00:00 GMT</pubDate>
+      <description>
+        <![CDATA[
+          <p>This week: <a href="https://example.com/older-one">Older One</a>.</p>
+        ]]>
+      </description>
+    </item>
+  </channel>
+</rss>

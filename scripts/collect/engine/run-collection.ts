@@ -1,4 +1,5 @@
 import type { NewsItem, SourceConfig, SourceCursor } from "../../../shared/schemas/index.js";
+import { applyVirtualScope } from "../virtual-source-filter.js";
 import type { AdapterRegistry } from "./adapter.js";
 import { runWithConcurrency } from "./concurrency.js";
 import { ConfigInvalidError } from "./errors.js";
@@ -112,7 +113,7 @@ export async function runCollection(options: CollectionRunOptions): Promise<Coll
         return {
           source,
           outcome: "succeeded",
-          items,
+          items: applyVirtualScope(items, source.filters),
           ...(cursorFragment ? { cursorFragment } : {}),
           attemptedAt,
           succeededAt: now().toISOString(),

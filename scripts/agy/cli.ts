@@ -1,8 +1,6 @@
 import { sources } from "../../config/sources/index.js";
 import { defaultDataDir, defaultWorktreeDir } from "../../server/storage/paths.js";
-import { createFeedAdapter } from "../collect/adapters/feed.js";
-import { createGithubReleaseAdapter } from "../collect/adapters/github-releases.js";
-import { createAdapterRegistry } from "../collect/engine/adapter.js";
+import { createDefaultAdapterRegistry } from "../collect/default-registry.js";
 import { collectAndPush } from "./collect-and-push.js";
 
 /**
@@ -13,7 +11,7 @@ import { collectAndPush } from "./collect-and-push.js";
  * must be passed explicitly by whoever runs this.
  */
 async function main(): Promise<void> {
-  const registry = createAdapterRegistry([createFeedAdapter(), createGithubReleaseAdapter()]);
+  const registry = createDefaultAdapterRegistry();
   const allowLargeChange = process.argv.includes("--allow-large-change");
 
   const result = await collectAndPush({
