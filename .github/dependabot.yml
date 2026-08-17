@@ -1,0 +1,36 @@
+version: 2
+
+# Dependabot always targets the repository's default branch (`main`) and
+# is never pointed at `data` here — the `data` branch carries no code, no
+# package.json, and no workflow files (PRD §16), so there is nothing on
+# it for Dependabot to ever touch.
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 10
+    groups:
+      # Patch/minor updates are grouped into one PR per dependency type;
+      # major updates are deliberately left out of both groups (PRD §17:
+      # "major updates require explicit review") so they surface as their
+      # own individual, ungrouped PRs instead of being folded in.
+      production-dependencies:
+        dependency-type: "production"
+        update-types: ["minor", "patch"]
+      development-dependencies:
+        dependency-type: "development"
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        update-types: ["minor", "patch"]
+
+# Auto-merge is deliberately not configured anywhere in this repository
+# (PRD §17: "Auto-merge disabled") — every Dependabot PR, grouped or not,
+# waits for the normal PR validation workflow and explicit human review.
