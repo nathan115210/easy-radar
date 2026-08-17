@@ -3,6 +3,7 @@ import { Link, Outlet, createRootRoute, createRoute, createRouter } from "@tanst
 import { NewsPage } from "./pages/NewsPage.js";
 import { SourcesPage } from "./pages/SourcesPage.js";
 import { validateNewsSearch } from "./routes/news-search.js";
+import { validateSourcesSearch } from "./routes/sources-search.js";
 
 function RootLayout() {
   return (
@@ -35,6 +36,7 @@ const newsRoute = createRoute({
 const sourcesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/sources",
+  validateSearch: validateSourcesSearch,
   component: SourcesPage,
 });
 

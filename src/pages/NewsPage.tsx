@@ -2,6 +2,7 @@ import { Pagination, SegmentedControl, Stack, Tabs, Text, Title } from "@mantine
 import { useQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { getNews } from "../api/client.js";
+import { CollectionStatusAlert } from "../components/CollectionStatusAlert.js";
 import { NewsCard } from "../components/NewsCard.js";
 import { CATEGORIES, CATEGORY_LABELS } from "../domain/category-labels.js";
 import type { Category, NewsStateFilter } from "../../shared/schemas/index.js";
@@ -13,9 +14,9 @@ const route = getRouteApi("/");
  * tabs, state filter, news cards, pagination, and a fixed "Finish reading"
  * button. #17 owns the tabs, filter, pagination, and the URL state
  * (category/state/page) they read and write; #18 owns the news card
- * itself (`NewsCard`). The alert (#19) and the finish-reading button (#21)
- * are built in their own issues and only have their layout slots reserved
- * here.
+ * itself (`NewsCard`); #19 owns the alert (`CollectionStatusAlert`). The
+ * finish-reading button (#21) is built in its own issue and only has its
+ * layout slot reserved here.
  */
 export function NewsPage() {
   const { category, state, page } = route.useSearch();
@@ -50,7 +51,7 @@ export function NewsPage() {
     <Stack gap="md" p="md">
       <Title order={1}>News</Title>
 
-      {/* Collection status alert lands in #19. */}
+      <CollectionStatusAlert />
 
       <Tabs value={category} onChange={setCategory}>
         <Tabs.List>
