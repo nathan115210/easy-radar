@@ -20,7 +20,7 @@
     "build": "echo \"pnpm build: not yet implemented (see issue #16)\"",
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "start": "echo \"pnpm start: not yet implemented (see issue #22)\"",
-    "collect": "echo \"pnpm collect: not yet implemented (see issue #12)\""
+    "collect": "tsx scripts/collect/cli.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",
