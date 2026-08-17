@@ -39,6 +39,7 @@
     "vitest": "4.1.10"
   },
   "dependencies": {
+    "feedsmith": "2.9.6",
     "zod": "4.4.3"
   }
 }
