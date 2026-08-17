@@ -23,6 +23,12 @@ export default tseslint.config(
         version: "detect",
       },
     },
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
   },
   {
     files: ["src/**/*.{ts,tsx}"],
