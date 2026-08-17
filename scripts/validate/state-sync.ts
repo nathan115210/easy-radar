@@ -1,21 +1,14 @@
-import type { NewsItem, NewsState, NewsStatesFile } from "../../shared/schemas/index.js";
+import type { NewsItem, NewsStatesFile } from "../../shared/schemas/index.js";
+import { isLiveTombstone } from "../cleanup/tombstone.js";
 import type { ValidationIssue } from "./validation-issue.js";
 
 /**
  * An ignored item's state entry outlives its news.json entry for 48h
  * (PRD §10) so the collection overlap window can't immediately re-add it —
  * that's the one kind of "orphaned" state entry validation must tolerate.
- * Past 48h it's stale and #24's cleanup rules are responsible for
- * removing it; validation doesn't delete anything itself.
+ * Past 48h it's stale and #24's cleanup rules (scripts/cleanup) are
+ * responsible for removing it; validation doesn't delete anything itself.
  */
-const TOMBSTONE_TTL_MS = 48 * 60 * 60 * 1000;
-
-function isLiveTombstone(state: NewsState, now: Date): boolean {
-  if (state.state !== "ignored" || !state.ignoredAt) {
-    return false;
-  }
-  return now.getTime() - Date.parse(state.ignoredAt) < TOMBSTONE_TTL_MS;
-}
 
 /**
  * Checks that news.json and news-states.json agree with each other
