@@ -18,7 +18,9 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "echo \"pnpm test:e2e: not yet implemented (see issue #32)\"",
     "build": "echo \"pnpm build: not yet implemented (see issue #16)\"",
-    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm validate:config && pnpm test && pnpm build",
+    "validate:config": "tsx scripts/validate/cli-config.ts",
+    "validate:data": "tsx scripts/validate/cli.ts",
     "start": "echo \"pnpm start: not yet implemented (see issue #22)\"",
     "collect": "tsx scripts/collect/cli.ts"
   },
