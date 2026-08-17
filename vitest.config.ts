@@ -7,6 +7,7 @@ export default defineConfig({
       "src/**/*.test.ts",
       "server/**/*.test.ts",
       "shared/**/*.test.ts",
+      "scripts/**/*.test.ts",
       "tests/**/*.test.ts",
     ],
     coverage: {
