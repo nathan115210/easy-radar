@@ -5,6 +5,7 @@ import { deriveLabel } from "../labels.js";
 import { normalizeUrl } from "../normalize-url.js";
 import { deriveTags } from "../tags.js";
 import { ghApiJson, type GhExec } from "./gh-cli.js";
+import { parseGithubRepo } from "./parse-github-repo.js";
 
 type GithubRelease = {
   tag_name: string;
@@ -14,15 +15,6 @@ type GithubRelease = {
   draft: boolean;
   prerelease: boolean;
 };
-
-function parseGithubRepo(sourceUrl: string): { owner: string; repo: string } {
-  const url = new URL(sourceUrl);
-  const [owner, repo] = url.pathname.split("/").filter(Boolean);
-  if (!owner || !repo) {
-    throw new Error(`Cannot determine owner/repo from GitHub source url "${sourceUrl}"`);
-  }
-  return { owner, repo };
-}
 
 function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);

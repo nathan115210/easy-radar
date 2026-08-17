@@ -1,0 +1,26 @@
+[
+  {
+    "number": 13,
+    "title": "Add proposal: New Architecture Phase 2",
+    "html_url": "https://github.com/react-native-community/discussions-and-proposals/pull/13",
+    "created_at": "2026-02-01T00:00:00Z"
+  },
+  {
+    "number": 12,
+    "title": "Meeting notes 2026-01-15",
+    "html_url": "https://github.com/react-native-community/discussions-and-proposals/pull/12",
+    "created_at": "2026-01-15T00:00:00Z"
+  },
+  {
+    "number": 11,
+    "title": "Fix typo in README",
+    "html_url": "https://github.com/react-native-community/discussions-and-proposals/pull/11",
+    "created_at": "2026-01-10T00:00:00Z"
+  },
+  {
+    "number": 10,
+    "title": "Update existing proposal wording",
+    "html_url": "https://github.com/react-native-community/discussions-and-proposals/pull/10",
+    "created_at": "2026-01-05T00:00:00Z"
+  }
+]
