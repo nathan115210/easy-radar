@@ -1,6 +1,9 @@
 # Collector development
 
-Further expanded in #35 alongside the user manual and reference sources doc.
+Internal maintenance guidance for the collector and its source adapters,
+kept separate from [`user-manual.md`](user-manual.md) so the daily
+reading/collecting workflow document stays focused. If you're looking
+for how to *use* the app, start there instead.
 
 ## Adapter priority order (PRD §11.1)
 
@@ -136,3 +139,40 @@ adapter that uses this (proposal → stage tracking).
 
 - Domain logic and Express API integration tests are colocated with their source
   files as `*.test.ts`, rather than living under `tests/`.
+
+## Repairing a failing source
+
+A source turns `Failing` on the Sources page when it errors during a
+run rather than merely returning zero items (an empty feed is a normal,
+silent outcome — see `docs/collector-development.md`'s adapter
+descriptions above); the specific reason is shown right there next to
+the source, and the same run's other sources are unaffected (PRD §7.2's
+per-source isolation).
+
+1. **Reproduce.** Run `pnpm collect` locally and read the terminal
+   summary for that source's error — a non-2xx HTTP status, a feed that
+   no longer parses, or a page whose structure no longer matches the
+   configured selectors are the common cases.
+2. **Diagnose against PRD §11.1's priority order**, not by immediately
+   reaching for a bespoke fix:
+   - A feed that started 404ing or redirecting: check whether the site
+     moved its feed URL, and update `SourceConfig.url` (a plain
+     "redirect normalized without changing source intent" edit, not a
+     behavior change).
+   - A `generic-html-json-ld` or `official-api` source whose page/API
+     shape changed: update the relevant `filters` (`itemSelector`,
+     `headingField`, etc.) to match the new shape — see the sections
+     above for what each field means.
+   - A site that dropped its feed entirely and now requires a lower
+     adapter tier: re-onboard it at the next tier down, same as any new
+     source (see "Adapter priority order" above).
+3. **If nothing at the configured tier works anymore** (the feed is
+   gone and no lower tier is viable without a bespoke adapter), set
+   `status: "planned"` rather than leaving it `Failing` indefinitely,
+   with a code comment stating why — a `Planned` source reads as "known,
+   not currently collectible," which is honest; a `Failing` source that
+   never gets fixed just becomes permanent alert noise.
+4. **Verify the fix** with `pnpm collect` again before committing — a
+   source config change is reviewed code, like any other, and should
+   actually produce valid items (or a deliberate `planned` status) before
+   it merges.
