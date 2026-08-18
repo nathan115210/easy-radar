@@ -33,3 +33,9 @@ config, not a separate source of truth.
 - Refactoring.Guru — https://refactoring.guru — catalog of design patterns and refactoring techniques.
 - DDD Crew — https://github.com/ddd-crew — community-maintained Domain-Driven Design tools and templates.
 - TypeScript documentation — https://www.typescriptlang.org/docs/ — official TypeScript language and compiler reference.
+
+## Mobile Development
+
+- React Native Architecture — https://reactnative.dev/architecture/overview — Reference documentation on the New Architecture, not a chronological event stream.
+- Expo EAS documentation — https://docs.expo.dev/eas/ — Build/submit/update service docs.
+- fastlane documentation — https://docs.fastlane.tools — Mobile release automation tooling docs.
