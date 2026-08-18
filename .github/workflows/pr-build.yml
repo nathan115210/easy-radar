@@ -1,0 +1,41 @@
+name: PR validation
+
+# Code pull requests targeting `main` only (PRD §17). There is no
+# data-only PR path (PRD §16) — data validation runs inline in the
+# collection pipeline before the write (#13), not as a PR check here.
+on:
+  pull_request:
+    branches: [main]
+
+# Read-only by default: no job in this workflow needs to write to the
+# repository, and none is granted the ability to (PRD §17 acceptance:
+# "No workflow in the repository can push to main").
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm build
+
+      # Playwright is deliberately not run here (#32): it's an explicit,
+      # opt-in command (`pnpm test:e2e`), not part of routine PR
+      # validation.
