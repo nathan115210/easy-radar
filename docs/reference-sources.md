@@ -37,6 +37,13 @@ config, not a separate source of truth.
 - PostgreSQL docs — https://www.postgresql.org/docs/ — Core database reference.
 - Terraform docs — https://developer.hashicorp.com/terraform/docs — Terraform language and provider reference.
 
+## Software Design & System Architecture
+
+- System Design Primer — https://github.com/donnemartin/system-design-primer — community-maintained reference for learning system design fundamentals.
+- Refactoring.Guru — https://refactoring.guru — catalog of design patterns and refactoring techniques.
+- DDD Crew — https://github.com/ddd-crew — community-maintained Domain-Driven Design tools and templates.
+- TypeScript documentation — https://www.typescriptlang.org/docs/ — official TypeScript language and compiler reference.
+
 ## Mobile Development
 
 - React Native Architecture — https://reactnative.dev/architecture/overview — Reference documentation on the New Architecture, not a chronological event stream.
