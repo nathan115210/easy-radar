@@ -36,3 +36,9 @@ config, not a separate source of truth.
 - Vercel docs — https://vercel.com/docs — Platform and deployment reference.
 - PostgreSQL docs — https://www.postgresql.org/docs/ — Core database reference.
 - Terraform docs — https://developer.hashicorp.com/terraform/docs — Terraform language and provider reference.
+
+## Mobile Development
+
+- React Native Architecture — https://reactnative.dev/architecture/overview — Reference documentation on the New Architecture, not a chronological event stream.
+- Expo EAS documentation — https://docs.expo.dev/eas/ — Build/submit/update service docs.
+- fastlane documentation — https://docs.fastlane.tools — Mobile release automation tooling docs.
