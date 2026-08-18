@@ -99,6 +99,14 @@ pnpm build
 pnpm validate   # format check + lint + typecheck + test + build
 ```
 
+### Continuous integration and cost
+
+[`.github/workflows/pr-build.yml`](.github/workflows/pr-build.yml) runs install, lint, typecheck, tests, and build on every code pull request targeting `main`. It is read-only (`permissions: contents: read`) and cannot push to `main`; there are no data pull requests (`data` carries no code), so data validation is not a PR check — it runs inline in the collection pipeline before the write instead. Playwright is not part of routine PR validation; it stays an explicit, opt-in command (`pnpm test:e2e`).
+
+This repository is public, so GitHub Actions minutes — including the scheduled cloud collection workflow — are free and unlimited. The account's Actions spending limit should remain at **$0** with paid usage disabled; this guard exists solely to prevent the account from ever being charged if a private repository or a paid runner were introduced later, not to restrict scheduled collection here. Verify it at [github.com/settings/billing](https://github.com/settings/billing).
+
+[`.github/dependabot.yml`](.github/dependabot.yml) opens grouped monthly PRs (patch/minor only; majors are left ungrouped for explicit review) for production dependencies, development dependencies, and GitHub Actions. Auto-merge is not configured anywhere in this repository. Dependabot only ever targets `main` — the `data` branch has no `package.json` or workflow files for it to touch.
+
 ## License
 
 [MIT](LICENSE) © 2026 Hongyu Zhao

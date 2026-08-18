@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "echo \"pnpm test:e2e: not yet implemented (see issue #32)\"",
+    "test:e2e": "pnpm build && playwright test",
     "dev": "vite",
     "build": "vite build",
     "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm validate:config && pnpm test && pnpm build",
@@ -30,6 +30,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.5",
     "@mantine/colors-generator": "9.5.1",
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.4",
