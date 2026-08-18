@@ -27,6 +27,13 @@ config, not a separate source of truth.
 - AutoGen docs — https://microsoft.github.io/autogen/
 - Prompt Engineering Guide — https://www.promptingguide.ai
 
+## Developer Tooling, Runtimes & Web Standards
+
+- Turbopack documentation — https://turbo.build/pack — redirects to the
+  Next.js docs (nextjs.org/docs/app/api-reference/turbopack); kept as
+  Turbopack's reference entry, not re-pointed at Next.js.
+- WebAssembly homepage/reference — https://webassembly.org
+
 ## DevOps, Cloud & Infrastructure
 
 - Docker docs — https://docs.docker.com/ — Container build/run/Compose reference.
