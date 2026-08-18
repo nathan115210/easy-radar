@@ -27,6 +27,16 @@ config, not a separate source of truth.
 - AutoGen docs — https://microsoft.github.io/autogen/
 - Prompt Engineering Guide — https://www.promptingguide.ai
 
+## DevOps, Cloud & Infrastructure
+
+- Docker docs — https://docs.docker.com/ — Container build/run/Compose reference.
+- GitHub Actions docs — https://docs.github.com/en/actions — Workflow syntax and runner reference.
+- AWS docs — https://docs.aws.amazon.com/ — Service documentation across the AWS catalog.
+- Cloudflare Workers docs — https://developers.cloudflare.com/workers/ — Workers runtime and API reference.
+- Vercel docs — https://vercel.com/docs — Platform and deployment reference.
+- PostgreSQL docs — https://www.postgresql.org/docs/ — Core database reference.
+- Terraform docs — https://developer.hashicorp.com/terraform/docs — Terraform language and provider reference.
+
 ## Testing & Release Quality
 
 - [Playwright docs](https://playwright.dev/docs/intro) — Official Playwright documentation.
