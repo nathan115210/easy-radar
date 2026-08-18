@@ -3,12 +3,13 @@ import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
+import { hermeticGitEnv } from "./git-exec.js";
 
 const execFileAsync = promisify(execFile);
 
 /** Direct git access for test arrange/assert steps — not the injectable `GitExec` under test. */
 export async function git(dir: string, args: readonly string[]): Promise<string> {
-  const { stdout } = await execFileAsync("git", ["-C", dir, ...args]);
+  const { stdout } = await execFileAsync("git", ["-C", dir, ...args], { env: hermeticGitEnv() });
   return stdout;
 }
 
