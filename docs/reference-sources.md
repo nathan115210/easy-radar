@@ -26,3 +26,9 @@ config, not a separate source of truth.
 - pgvector docs — https://github.com/pgvector/pgvector — vector DB docs (README-hosted).
 - AutoGen docs — https://microsoft.github.io/autogen/
 - Prompt Engineering Guide — https://www.promptingguide.ai
+
+## Mobile Development
+
+- React Native Architecture — https://reactnative.dev/architecture/overview — Reference documentation on the New Architecture, not a chronological event stream.
+- Expo EAS documentation — https://docs.expo.dev/eas/ — Build/submit/update service docs.
+- fastlane documentation — https://docs.fastlane.tools — Mobile release automation tooling docs.
