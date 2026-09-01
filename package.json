@@ -60,15 +60,15 @@
     "vitest": "4.1.10"
   },
   "dependencies": {
-    "@mantine/core": "9.5.1",
-    "@mantine/hooks": "9.5.1",
-    "@tanstack/react-query": "5.101.4",
-    "@tanstack/react-router": "1.170.29",
+    "@mantine/core": "9.5.2",
+    "@mantine/hooks": "9.5.2",
+    "@tanstack/react-query": "5.102.8",
+    "@tanstack/react-router": "1.170.32",
     "cheerio": "1.2.0",
     "express": "5.2.1",
     "feedsmith": "2.9.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "zod": "4.4.3"
+    "zod": "4.5.2"
   }
 }
